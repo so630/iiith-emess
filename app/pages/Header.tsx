@@ -4,7 +4,7 @@ import IIITHLogo from '../../assets/images/iiit-logo.png'
 export default function Header()
 {
     return (
-        <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 60}}>
+        <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 60, backgroundColor: "#F6F6F2" }}>
             <Image source={IIITHLogo} style={styles.logo} />
             <Text style={styles.eMess}>eMess</Text>
         </View>

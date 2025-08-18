@@ -5,7 +5,7 @@ import {
   NavigationIndependentTree,
 } from '@react-navigation/native';
 
-import Tabs from "./components/BottomBar"
+import Tabs from "./pages/BottomBar"
 
 export default function App() {
   return (
