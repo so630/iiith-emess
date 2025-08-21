@@ -83,5 +83,11 @@
     <string>Automatic</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app requires access to your photos to upload and select images.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>This app requires access to your camera to take photos.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>This app requires permission to save photos.</string>
   </dict>
 </plist>
