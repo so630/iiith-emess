@@ -7,6 +7,12 @@ import {Picker} from "@react-native-picker/picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function Menu() {
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setDate(end.getDate() + 21);
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
     const [mess,
         setMess] = useState(0); // 0 for Palash, 1 for Yuktahar, 2 for Kadamba
@@ -81,7 +87,7 @@ export default function Menu() {
 
     React.useEffect(() => {
         const getMenu = async() => {
-            const result = await fetch('https://mess.iiit.ac.in/api/mess/menus');
+            const result = await fetch(`https://mess.iiit.ac.in/api/mess/menus?on=${date.toISOString().split("T")[0]}`);
             let body = await result.json();
             body.data.map((menu1 : any) => {
                     if (menu1.mess === messes[mess].toLowerCase()) {
@@ -96,7 +102,7 @@ export default function Menu() {
 
         getMenu();
         console.log(menu);
-    }, []);
+    }, [date]);
 
     React.useEffect(() => {
         console.log(menu && menu[days[date.getDay()]][meal.toLowerCase()]);
@@ -157,7 +163,7 @@ export default function Menu() {
                         </Text>
                     </TouchableOpacity>
 
-                    <DateTimePickerModal isVisible={isDatePickerVisible} mode="date" date={date} minimumDate={new Date()} // optional: disable past
+                    <DateTimePickerModal isVisible={isDatePickerVisible} mode="date" date={date} minimumDate={today} maximumDate={end} // optional: disable past
                         onConfirm={handleConfirm} onCancel={() => setDatePickerVisibility(false)}/>
                 </View>
 
@@ -222,11 +228,13 @@ export default function Menu() {
                     {menu && menu[days[date.getDay()]][meal.toLowerCase()].map((item : {
                         category: string,
                         item: string
-                    }, index : number) => <Text key={index}>
+                    }, index : number) => item.item !== '' && 
+                    <Text key={index}>
                         <Text
                             style={{
                             color: "#D0D0D0"
-                        }}>{item.category}</Text>: {item.item}</Text>)
+                        }}>{item.category}</Text>: {item.item}
+                        </Text>)
 }
                 </View>
 
