@@ -79,7 +79,7 @@ function BottomBar({ state, descriptors, navigation }: BottomBarProps) {
             </Text>}
             {
               label === 'Menu' && 
-              (!isFocused ? <MenuIcon width='24' height='24' style={{ transform: [{ scaleX: -1 }] }} /> : <FocusedMenuIcon width='24' height='24' />)
+              (!isFocused ? <MenuIcon width='24' height='24' style={{ transform: [{ scaleX: 1 }] }} /> : <FocusedMenuIcon width='24' height='24' />)
             }
             {
               label === 'Profile' && 
