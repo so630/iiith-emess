@@ -1,12 +1,15 @@
 import {View, Text, SafeAreaView, StyleSheet} from 'react-native'
 import RegistrationTopBar from './components/RegistrationTopBar';
+import { useState } from 'react';
 
 export default function Register()
 {
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
     return (
     <SafeAreaView style={styles.container}>
       {/* Top Bar */}
-      <RegistrationTopBar />
+      <RegistrationTopBar selectedDate={selectedDate} setSelectedDate={setSelectedDate}/>
 
       {/* Main Content Area */}
       <View style={styles.content}>

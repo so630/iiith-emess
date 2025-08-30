@@ -1,22 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import dayjs from "dayjs";
-import isoWeek from "dayjs/plugin/isoWeek";
-dayjs.extend(isoWeek);
 
 import { _getAuthKey } from "@/app/helpers";
 import { transformData, formatMess, MealType, DayMeals } from "@/app/helpers";
 
-
 const mealTypes: MealType[] = ["B", "L", "S", "D"];
 
 // ---- Component ----
-const RegistrationTopBar = () => {
+const RegistrationTopBar = ({selectedDate, setSelectedDate}) => {
   const [weekOffset, setWeekOffset] = useState(0);
   const flatListRef = useRef<FlatList<DayMeals>>(null);
 
-  const [startDate, setStartDate] = useState(dayjs().startOf("isoWeek").startOf("day").toDate()); // Monday
-  const [endDate, setEndDate] = useState(dayjs().endOf("isoWeek").endOf("day").toDate());
+  // ---- Sunday → Saturday ----
+  const [startDate, setStartDate] = useState(
+    dayjs().startOf("week").startOf("day").toDate() // Sunday
+  );
+  const [endDate, setEndDate] = useState(
+    dayjs().endOf("week").endOf("day").toDate() // Saturday
+  );
 
   const [weekData, setWeekData] = useState<DayMeals[]>([]);
   const [data, setData] = useState([]);
@@ -33,7 +35,7 @@ const RegistrationTopBar = () => {
         { headers: { Authorization: authKey } }
       );
       const data = await response.json();
-      // pass week start so transformData builds Mon→Sun for this week
+      // pass week start/end so transformData builds Sun→Sat
       const transformed = transformData(data, startDate, endDate);
       setWeekData(transformed);
       setData(data);
@@ -42,15 +44,15 @@ const RegistrationTopBar = () => {
       console.log(transformed);
       console.log(start);
       console.log(end);
-      
     };
     fetchRegistrationData(start, end);
   }, [startDate, endDate]);
 
   // selectedDate stored as YYYY-MM-DD string
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+//   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  useEffect(() => console.log("selected", selectedDate), [selectedDate]);
 
-  // when weekData changes, default selectedDate => today's date if present, else first day of week
+  // when weekData changes, default selectedDate => today if present, else first day of week
   useEffect(() => {
     if (!weekData || weekData.length === 0) return;
     const todayStr = dayjs().format("YYYY-MM-DD");
@@ -63,7 +65,6 @@ const RegistrationTopBar = () => {
     if (!selectedDate || !weekData || weekData.length === 0) return;
     const idx = weekData.findIndex((d) => d.date === selectedDate);
     if (idx >= 0 && flatListRef.current) {
-      // guard to ensure item exists
       setTimeout(() => {
         flatListRef.current?.scrollToIndex({ index: idx, animated: true });
       }, 150);
@@ -119,7 +120,6 @@ const RegistrationTopBar = () => {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.date}
         renderItem={({ item }) => {
-          // simple equality check (strings)
           const isSelected = item.date === selectedDate;
 
           return (
@@ -129,7 +129,7 @@ const RegistrationTopBar = () => {
                 <Text style={styles.dateText}>{dayjs(item.date).format("D")}</Text>
 
                 {mealTypes.map((meal) => {
-                  const mealEntry = item.meals[meal]; // object {id, mess, category, availed} OR undefined
+                  const mealEntry = item.meals[meal];
                   const entry = mealEntry && formatMess(mealEntry.mess);
                   return (
                     <View key={meal} style={styles.mealRow}>
