@@ -1,10 +1,20 @@
 import {View, Text, SafeAreaView, StyleSheet} from 'react-native'
 import RegistrationTopBar from './components/RegistrationTopBar';
-import { useState } from 'react';
+import MenuComponent from './components/MenuComponent';
+import { useEffect, useState } from 'react';
 
 export default function Register()
 {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+    const [date, setDate] = useState<Date>(new Date());
+
+    useEffect(() => {
+        if (selectedDate !== null) {
+            const [year, month, day] = selectedDate.split('-').map(Number);
+            setDate(new Date(year, month-1, day))
+        }
+    }, [selectedDate])
 
     return (
     <SafeAreaView style={styles.container}>
@@ -12,12 +22,7 @@ export default function Register()
       <RegistrationTopBar selectedDate={selectedDate} setSelectedDate={setSelectedDate}/>
 
       {/* Main Content Area */}
-      <View style={styles.content}>
-        {/* Placeholder for future menu/details */}
-      </View>
-
-      {/* Bottom Menu Placeholder */}
-      <View style={styles.bottomBar} />
+      {selectedDate !== null && <MenuComponent date={date} />}
     </SafeAreaView>
   );
 }
