@@ -56,6 +56,29 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
     const [isMealModalVisible,
         setMealModalVisible] = useState(false);
 
+    React.useEffect(() => {
+        if (Object.keys(currentRegistration).length !== 0 && currentRegistration.meals[meal[0]] !== messes[mess] && meal[0] !== 'S')
+        {
+            console.log('registering');
+            console.log(currentRegistration);
+            console.log(messes[mess]);
+            console.log(meal[0]);
+
+            setCurrentRegistration((prev: any) => {
+                return {
+                    ...prev,
+                    meals: {
+                        ...prev.meals,
+                        [meal[0]]: {
+                            ...prev.meals[meal[0]],
+                            mess: messes[mess].toLowerCase()
+                        }
+                    }
+                }
+            })
+        }
+    }, [mess, meal])
+
     // smart defaults for meal
     React.useEffect(() => {
         const now = new Date();
@@ -90,7 +113,7 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
                 setMess(0); // default to Palash, or whichever you prefer
             }
         }
-    }, [meal])
+    }, [date, meal])
 
     React.useEffect(() => {
         console.log('getting menu!')
@@ -159,6 +182,32 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
             mess={mess}
             />
         )}
+
+        {meal[0] === "S" && (
+  <TouchableOpacity
+    style={{
+      marginTop: 10,
+      padding: 10,
+      backgroundColor: "#6D9BC5",
+      borderRadius: 8,
+    }}
+    onPress={() => {
+      setCurrentRegistration((prev: any) => {
+                return {
+                    ...prev,
+                    meals: {
+                        ...prev.meals,
+                        [meal[0]]: {
+                            ...prev.meals[meal[0]],
+                            mess: messes[mess].toLowerCase()
+                        }
+                    }
+                }
+            })
+    }}
+  >
+    <Text style={{ color: "white", textAlign: "center" }}>Register Snacks</Text>
+  </TouchableOpacity>)}
 
         <Modal
             visible={isMealModalVisible}

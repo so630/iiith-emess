@@ -4,53 +4,48 @@ import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "
 const mainTabs = ["Palash", "Yuktahar", "Kadamba"];
 const screenWidth = Dimensions.get("window").width;
 
-
 // Colors for each main tab
 const tabColors = ["#6b9edb", "#008080", "#FF7F50"];
 
-function SlidingTabs({ onUpdate, containerWidth, mess }: { onUpdate: (arg: number) => void, containerWidth: number, mess: number }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [kadambaChoice, setKadambaChoice] = useState<0 | 1>(0); // 0=Veg, 1=Nonveg
-  const tabWidth = (containerWidth-128) / 3;
-
-  useEffect(() => {
-    if (mess === 0 || mess === 1) {
-      setActiveIndex(mess);
-      Animated.spring(animValue, {
-        toValue: mess,
-        useNativeDriver: false,
-      }).start();
-    } else if (mess === 2 || mess === 3) {
-      setActiveIndex(2);
-      setKadambaChoice(mess === 2 ? 0 : 1);
-      Animated.spring(animValue, {
-        toValue: 2,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [mess]);
-
+function SlidingTabs({
+  onUpdate,
+  containerWidth,
+  mess,
+}: {
+  onUpdate: (arg: number) => void;
+  containerWidth: number;
+  mess: number;
+}) {
+  const tabWidth = (containerWidth - 128) / 3;
   const animValue = useRef(new Animated.Value(0)).current;
 
-  const handlePress = (index: number) => {
-    setActiveIndex(index);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [kadambaChoice, setKadambaChoice] = useState(0);
 
+  // derive activeIndex + kadambaChoice directly from mess
+  useEffect(() => {
+    console.log(mess)
+    setActiveIndex(mess === 0 || mess === 1 ? mess : 2)
+    setKadambaChoice(mess === 2 ? 0 : mess === 3 ? 1 : 0)
+  }, [mess])
+
+  useEffect(() => {
+    Animated.spring(animValue, {
+      toValue: activeIndex,
+      useNativeDriver: false,
+    }).start();
+  }, [activeIndex]);
+
+  const handlePress = (index: number) => {
     if (index === 2) {
-      // Default Kadamba = Veg (2)
-      onUpdate(2);
+      onUpdate(2); // default Kadamba=Veg
     } else {
       onUpdate(index);
     }
-
-    Animated.spring(animValue, {
-      toValue: index,
-      useNativeDriver: false,
-    }).start();
   };
 
   const handleKadambaChoice = (choice: 0 | 1) => {
-    setKadambaChoice(choice);
-    onUpdate(choice === 0 ? 2 : 3); // Veg=2, Nonveg=3
+    onUpdate(choice === 0 ? 2 : 3);
   };
 
   const translateX = animValue.interpolate({
@@ -104,8 +99,8 @@ function SlidingTabs({ onUpdate, containerWidth, mess }: { onUpdate: (arg: numbe
           <TouchableOpacity
             style={[
               styles.kadambaOption,
-              kadambaChoice === 0 && {backgroundColor: '#138808'},
-              { padding: 8, alignItems: "center", justifyContent: "center" }
+              kadambaChoice === 0 && { backgroundColor: "#138808" },
+              { padding: 8, alignItems: "center", justifyContent: "center" },
             ]}
             onPress={() => handleKadambaChoice(0)}
           >
@@ -153,7 +148,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
     paddingVertical: 4,
-    // Box shadow for iOS and elevation for Android
     shadowColor: "#000",
     shadowOpacity: 0.12,
     shadowOffset: { width: 0, height: 4 },

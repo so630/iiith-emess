@@ -20,6 +20,11 @@ export default function Register()
         }
     }, [selectedDate])
 
+    useEffect(() => {
+      console.log('registration changed!!')
+      console.log(currentRegistration);
+    })
+
     return (
     <SafeAreaView style={styles.container}>
       {/* Top Bar */}
