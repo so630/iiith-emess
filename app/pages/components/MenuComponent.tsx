@@ -208,6 +208,30 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
   >
     <Text style={{ color: "white", textAlign: "center" }}>Register Snacks</Text>
   </TouchableOpacity>)}
+  {(meal[0] === "S" && currentRegistration.meals[meal[0]]) && (
+  <TouchableOpacity
+    style={{
+      marginTop: 10,
+      padding: 10,
+      backgroundColor: "#FF7F50",
+      borderRadius: 8,
+    }}
+    onPress={() => {
+      setCurrentRegistration((prev: any) => {
+                return {
+                    ...prev,
+                    meals: {
+                        ...prev.meals,
+                        [meal[0]]: {
+                            
+                        }
+                    }
+                }
+            })
+    }}
+  >
+    <Text style={{ color: "white", textAlign: "center" }}>Cancel Snacks</Text>
+  </TouchableOpacity>)}
 
         <Modal
             visible={isMealModalVisible}
