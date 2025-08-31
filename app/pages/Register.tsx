@@ -9,6 +9,10 @@ export default function Register()
 
     const [date, setDate] = useState<Date>(new Date());
 
+    const [currentRegistration, setCurrentRegistration] = useState<Object>({});
+
+    // useEffect(() => console.log(currentRegistration), [currentRegistration]);
+
     useEffect(() => {
         if (selectedDate !== null) {
             const [year, month, day] = selectedDate.split('-').map(Number);
@@ -19,10 +23,10 @@ export default function Register()
     return (
     <SafeAreaView style={styles.container}>
       {/* Top Bar */}
-      <RegistrationTopBar selectedDate={selectedDate} setSelectedDate={setSelectedDate}/>
+      <RegistrationTopBar selectedDate={selectedDate} setSelectedDate={setSelectedDate} currentRegistration={currentRegistration} setCurrentRegistration={setCurrentRegistration}/>
 
       {/* Main Content Area */}
-      {selectedDate !== null && <MenuComponent date={date} />}
+      {selectedDate !== null && <MenuComponent date={date} currentRegistration={currentRegistration} setCurrentRegistration={setCurrentRegistration} />}
     </SafeAreaView>
   );
 }

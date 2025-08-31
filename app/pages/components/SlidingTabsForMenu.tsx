@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const mainTabs = ["Palash", "Yuktahar", "Kadamba"];
@@ -8,10 +8,27 @@ const screenWidth = Dimensions.get("window").width;
 // Colors for each main tab
 const tabColors = ["#6b9edb", "#008080", "#FF7F50"];
 
-function SlidingTabs({ onUpdate, containerWidth }: { onUpdate: (arg: number) => void, containerWidth: number }) {
+function SlidingTabs({ onUpdate, containerWidth, mess }: { onUpdate: (arg: number) => void, containerWidth: number, mess: number }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [kadambaChoice, setKadambaChoice] = useState<0 | 1>(0); // 0=Veg, 1=Nonveg
   const tabWidth = (containerWidth-128) / 3;
+
+  useEffect(() => {
+    if (mess === 0 || mess === 1) {
+      setActiveIndex(mess);
+      Animated.spring(animValue, {
+        toValue: mess,
+        useNativeDriver: false,
+      }).start();
+    } else if (mess === 2 || mess === 3) {
+      setActiveIndex(2);
+      setKadambaChoice(mess === 2 ? 0 : 1);
+      Animated.spring(animValue, {
+        toValue: 2,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [mess]);
 
   const animValue = useRef(new Animated.Value(0)).current;
 

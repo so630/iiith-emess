@@ -1,14 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import dayjs from "dayjs";
+import React, { useEffect, useRef, useState } from "react";
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { _getAuthKey } from "@/app/helpers";
-import { transformData, formatMess, MealType, DayMeals } from "@/app/helpers";
+import { _getAuthKey, DayMeals, formatMess, MealType, transformData } from "@/app/helpers";
 
 const mealTypes: MealType[] = ["B", "L", "S", "D"];
 
 // ---- Component ----
-const RegistrationTopBar = ({selectedDate, setSelectedDate}) => {
+const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration, setCurrentRegistration}) => {
   const [weekOffset, setWeekOffset] = useState(0);
   const flatListRef = useRef<FlatList<DayMeals>>(null);
 
@@ -71,6 +70,23 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate}) => {
     }
   }, [selectedDate, weekData]);
 
+  useEffect(() => {
+    console.log('selecteddate changed', selectedDate)
+    if (selectedDate)
+    {
+        console.log(weekData);
+        for (const data of weekData)
+        {
+            if (data.date === selectedDate)
+            {
+                // console.log(data);
+                setCurrentRegistration(data);
+                break;
+            }
+        }
+    }
+  }, [selectedDate])
+
   return (
     <View style={styles.container}>
       {/* Week Nav */}
@@ -123,7 +139,11 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate}) => {
           const isSelected = item.date === selectedDate;
 
           return (
-            <TouchableOpacity onPress={() => setSelectedDate(item.date)} activeOpacity={0.75}>
+            <TouchableOpacity onPress={() => {
+                setSelectedDate(item.date);
+                setCurrentRegistration(item); // set current registration to the selected day's data
+                // console.log(item);
+            }} activeOpacity={0.75}>
               <View style={[styles.dayCard, isSelected && styles.todayHighlight]}>
                 <Text style={styles.dayText}>{dayjs(item.date).format("ddd")}</Text>
                 <Text style={styles.dateText}>{dayjs(item.date).format("D")}</Text>

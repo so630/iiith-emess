@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import SlidingTabs from "./SlidingTabsForMenu";
 
-export default function BreakfastCard({date}) {
+export default function BreakfastCard({date, currentRegistration, setCurrentRegistration}) {
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
+    const messkey = {'palash': 0, 'yuktahar': 1, 'kadamba-veg': 2, 'kadamba-nonveg': 3}
     const [mess,
         setMess] = useState(0); // 0 for Palash, 1 for Yuktahar, 2 for Kadamba
 
@@ -70,13 +71,26 @@ export default function BreakfastCard({date}) {
             setMeal("Dinner");
         else 
             setMeal("Dinner");
+        
         }
     , []);
 
-    const handleConfirm = (selectedDate : any) => {
-        setDate(selectedDate);
-        setDatePickerVisibility(false);
-    };
+    React.useEffect(() => {
+        if (Object.keys(currentRegistration).length !== 0) {
+            console.log('meal changed');
+            console.log(currentRegistration.meals);
+
+            const mealReg = currentRegistration.meals?.[meal[0]]; // safe access
+            if (mealReg && mealReg.mess) {
+                const mess_name: string = mealReg.mess;
+                setMess(messkey[mess_name]);
+            } else {
+                console.log(`${meal} not registered`);
+                // fallback if user not registered
+                setMess(0); // default to Palash, or whichever you prefer
+            }
+        }
+    }, [meal])
 
     React.useEffect(() => {
         console.log('getting menu!')
@@ -142,6 +156,7 @@ export default function BreakfastCard({date}) {
             <SlidingTabs
             onUpdate={handleUpdate}
             containerWidth={containerWidth}
+            mess={mess}
             />
         )}
 
