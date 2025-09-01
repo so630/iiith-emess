@@ -132,11 +132,14 @@ const RegistrationTopBar = ({
                           mealEntry?.availed
                             ? { textDecorationLine: "line-through" }
                             : {},
+                          mealEntry?.cancelled
+                            ? { color: "red" }
+                            : {}
                         ]}
                       >
-                        {mealEntry?.mess
+                        {mealEntry?.mess && mealEntry.cancelled === false
                           ? formatMess(mealEntry.mess)
-                          : "Unregistered"}
+                          : mealEntry?.cancelled === true ? "Cancelled" : "Unregistered"}
                       </Text>
                     </View>
                   );

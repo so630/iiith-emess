@@ -12,6 +12,7 @@ export interface MealEntry {
   mess: string;
   category: string;
   availed: boolean;
+  cancelled: boolean;
 }
 
 export interface DayMeals {
@@ -43,6 +44,7 @@ export function transformData(apiData: any, start, end): DayMeals[] {
       mess: meal.category === "unregistered" ? "Unregistered" : meal.meal_mess,
       category: meal.category,
       availed: meal.availed_at !== null,
+      cancelled: meal.cancelled_at !== null,
     };
   }
 
