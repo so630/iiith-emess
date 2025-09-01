@@ -7,51 +7,22 @@ import { _getAuthKey, DayMeals, formatMess, MealType, transformData } from "@/ap
 const mealTypes: MealType[] = ["B", "L", "S", "D"];
 
 // ---- Component ----
-const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration, setCurrentRegistration}) => {
-  const [weekOffset, setWeekOffset] = useState(0);
+const RegistrationTopBar = ({
+  selectedDate,
+  setSelectedDate,
+  currentRegistration,
+  setCurrentRegistration,
+  weekData,
+  startDate,
+  endDate,
+  setStartDate,
+  setEndDate,
+  weekOffset,
+  setWeekOffset,
+}) => {
   const flatListRef = useRef<FlatList<DayMeals>>(null);
 
-  // ---- Sunday → Saturday ----
-  const [startDate, setStartDate] = useState(
-    dayjs().startOf("week").startOf("day").toDate() // Sunday
-  );
-  const [endDate, setEndDate] = useState(
-    dayjs().endOf("week").endOf("day").toDate() // Saturday
-  );
-
-  const [weekData, setWeekData] = useState<DayMeals[]>([]);
-  const [data, setData] = useState([]);
-
-  // fetch using start/end and pass start (YYYY-MM-DD) to transformData
-  useEffect(() => {
-    const start = startDate.toISOString().split("T")[0];
-    const end = endDate.toISOString().split("T")[0];
-
-    const fetchRegistrationData = async (start: any, end: any) => {
-      const authKey = await _getAuthKey();
-      const response = await fetch(
-        `https://mess.iiit.ac.in/api/registrations?from=${start}&to=${end}`,
-        { headers: { Authorization: authKey } }
-      );
-      const data = await response.json();
-      // pass week start/end so transformData builds Sun→Sat
-      const transformed = transformData(data, startDate, endDate);
-      setWeekData(transformed);
-      setData(data);
-
-      console.log(data);
-      console.log(transformed);
-      console.log(start);
-      console.log(end);
-    };
-    fetchRegistrationData(start, end);
-  }, [startDate, endDate]);
-
-  // selectedDate stored as YYYY-MM-DD string
-//   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  useEffect(() => console.log("selected", selectedDate), [selectedDate]);
-
-  // when weekData changes, default selectedDate => today if present, else first day of week
+  // default selection when weekData changes
   useEffect(() => {
     if (!weekData || weekData.length === 0) return;
     const todayStr = dayjs().format("YYYY-MM-DD");
@@ -59,9 +30,9 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration,
     setSelectedDate(hasToday ? todayStr : weekData[0].date);
   }, [weekData]);
 
-  // auto-scroll to selectedDate when it changes
+  // auto-scroll to selectedDate
   useEffect(() => {
-    if (!selectedDate || !weekData || weekData.length === 0) return;
+    if (!selectedDate || weekData.length === 0) return;
     const idx = weekData.findIndex((d) => d.date === selectedDate);
     if (idx >= 0 && flatListRef.current) {
       setTimeout(() => {
@@ -70,22 +41,12 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration,
     }
   }, [selectedDate, weekData]);
 
+  // update currentRegistration when date changes
   useEffect(() => {
-    console.log('selecteddate changed', selectedDate)
-    if (selectedDate)
-    {
-        console.log(weekData);
-        for (const data of weekData)
-        {
-            if (data.date === selectedDate)
-            {
-                // console.log(data);
-                setCurrentRegistration(data);
-                break;
-            }
-        }
-    }
-  }, [selectedDate])
+    if (!selectedDate) return;
+    const found = weekData.find((d) => d.date === selectedDate);
+    if (found) setCurrentRegistration(found);
+  }, [selectedDate, weekData]);
 
   return (
     <View style={styles.container}>
@@ -104,7 +65,9 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration,
           }}
           disabled={weekOffset === 0}
         >
-          <Text style={[styles.arrow, weekOffset === 0 && styles.disabled]}>{"<"}</Text>
+          <Text style={[styles.arrow, weekOffset === 0 && styles.disabled]}>
+            {"<"}
+          </Text>
         </TouchableOpacity>
 
         <Text style={styles.weekText}>
@@ -124,7 +87,9 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration,
           }}
           disabled={weekOffset === 3}
         >
-          <Text style={[styles.arrow, weekOffset === 3 && styles.disabled]}>{">"}</Text>
+          <Text style={[styles.arrow, weekOffset === 3 && styles.disabled]}>
+            {">"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -139,28 +104,39 @@ const RegistrationTopBar = ({selectedDate, setSelectedDate, currentRegistration,
           const isSelected = item.date === selectedDate;
 
           return (
-            <TouchableOpacity onPress={() => {
+            <TouchableOpacity
+              onPress={() => {
                 setSelectedDate(item.date);
-                setCurrentRegistration(item); // set current registration to the selected day's data
-                // console.log(item);
-            }} activeOpacity={0.75}>
-              <View style={[styles.dayCard, isSelected && styles.todayHighlight]}>
-                <Text style={styles.dayText}>{dayjs(item.date).format("ddd")}</Text>
-                <Text style={styles.dateText}>{dayjs(item.date).format("D")}</Text>
+                setCurrentRegistration(item);
+              }}
+              activeOpacity={0.75}
+            >
+              <View
+                style={[styles.dayCard, isSelected && styles.todayHighlight]}
+              >
+                <Text style={styles.dayText}>
+                  {dayjs(item.date).format("ddd")}
+                </Text>
+                <Text style={styles.dateText}>
+                  {dayjs(item.date).format("D")}
+                </Text>
 
-                {mealTypes.map((meal) => {
+                {["B", "L", "S", "D"].map((meal) => {
                   const mealEntry = item.meals[meal];
-                  const entry = mealEntry && formatMess(mealEntry.mess);
                   return (
                     <View key={meal} style={styles.mealRow}>
                       <Text style={styles.mealBadge}>{meal}</Text>
                       <Text
                         style={[
                           styles.mealText,
-                          mealEntry?.availed ? { textDecorationLine: "line-through" } : {},
+                          mealEntry?.availed
+                            ? { textDecorationLine: "line-through" }
+                            : {},
                         ]}
                       >
-                        {entry ? entry : "Unregistered"}
+                        {mealEntry?.mess
+                          ? formatMess(mealEntry.mess)
+                          : "Unregistered"}
                       </Text>
                     </View>
                   );

@@ -24,6 +24,8 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
         }
     };
 
+    
+
     useEffect(() => console.log(data), [data]);
 
     const [containerWidth, setContainerWidth] = useState(0);
@@ -56,28 +58,28 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
     const [isMealModalVisible,
         setMealModalVisible] = useState(false);
 
-    React.useEffect(() => {
-        if (Object.keys(currentRegistration).length !== 0 && currentRegistration.meals[meal[0]] !== messes[mess] && meal[0] !== 'S')
-        {
-            console.log('registering');
-            console.log(currentRegistration);
-            console.log(messes[mess]);
-            console.log(meal[0]);
+    // React.useEffect(() => {
+    //     if (Object.keys(currentRegistration).length !== 0 && currentRegistration.meals[meal[0]] !== messes[mess] && meal[0] !== 'S')
+    //     {
+    //         console.log('registering');
+    //         console.log(currentRegistration);
+    //         console.log(messes[mess]);
+    //         console.log(meal[0]);
 
-            setCurrentRegistration((prev: any) => {
-                return {
-                    ...prev,
-                    meals: {
-                        ...prev.meals,
-                        [meal[0]]: {
-                            ...prev.meals[meal[0]],
-                            mess: messes[mess].toLowerCase()
-                        }
-                    }
-                }
-            })
-        }
-    }, [mess, meal])
+    //         setCurrentRegistration((prev: any) => {
+    //             return {
+    //                 ...prev,
+    //                 meals: {
+    //                     ...prev.meals,
+    //                     [meal[0]]: {
+    //                         ...prev.meals[meal[0]],
+    //                         mess: messes[mess].toLowerCase()
+    //                     }
+    //                 }
+    //             }
+    //         })
+    //     }
+    // }, [mess, meal])
 
     // smart defaults for meal
     React.useEffect(() => {
@@ -134,6 +136,56 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
         getMenu();
         console.log(menu);
     }, [date]);
+
+    const [registeredMess, setRegisteredMess] = useState<string | null>(null);
+    const [selectedMess, setSelectedMess] = useState<string | null>(null);
+
+    // Keep selected mess in sync whenever user changes tab
+    useEffect(() => {
+    setSelectedMess(messes[mess]?.toLowerCase());
+    console.log('selected mess');
+    console.log(messes[mess]?.toLowerCase());
+    }, [mess]);
+
+    // Keep registered mess in sync whenever registration or meal changes
+    useEffect(() => {
+    if (currentRegistration?.meals?.[meal[0]]?.mess) {
+        console.log('registered mess');
+        console.log(currentRegistration.meals[meal[0]].mess.toLowerCase());
+        setRegisteredMess(currentRegistration.meals[meal[0]].mess.toLowerCase());
+    } else {
+        setRegisteredMess(null);
+    }
+    }, [currentRegistration, meal]);
+
+
+    const [unavailableMesses, setUnavailableMesses] = useState<string[]>([]);
+
+    useEffect(() => {
+    if (!data) return;
+
+    const today = days[date.getDay()];
+    const unavailable: string[] = [];
+
+    data.forEach((menu1: any) => {
+        const messName = menu1.mess; // e.g., "kadamba-nonveg"
+        const mealMenu = menu1.days?.[today]?.[meal.toLowerCase()];
+
+        if (messName === "kadamba-nonveg" && mealMenu) {
+        // Look for any non-veg item
+        const hasNonVeg = mealMenu.some(
+            (entry: any) =>
+            entry.category.toLowerCase().includes("non-veg") && entry.item.trim() !== ""
+        );
+
+        if (!hasNonVeg) {
+            unavailable.push(messName); // mark as unavailable
+        }
+        }
+    });
+
+    setUnavailableMesses(unavailable);
+    }, [data, date, meal]);
   return (
     <View style={styles.card} onLayout={event => {
         setContainerWidth(event.nativeEvent.layout.width);
@@ -176,62 +228,64 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
 
       {/* Options (Palash, Yuktahar, Kadamba) */}
         {containerWidth > 0 && (
-            <SlidingTabs
-            onUpdate={handleUpdate}
-            containerWidth={containerWidth}
-            mess={mess}
-            />
-        )}
+  <>
+    <SlidingTabs
+      onUpdate={handleUpdate}
+      containerWidth={containerWidth}
+      mess={mess}
+      unavailableMesses={unavailableMesses}
+    />
 
-        {meal[0] === "S" && (
-  <TouchableOpacity
-    style={{
-      marginTop: 10,
-      padding: 10,
-      backgroundColor: "#6D9BC5",
-      borderRadius: 8,
-    }}
-    onPress={() => {
-      setCurrentRegistration((prev: any) => {
-                return {
-                    ...prev,
-                    meals: {
-                        ...prev.meals,
-                        [meal[0]]: {
-                            ...prev.meals[meal[0]],
-                            mess: messes[mess].toLowerCase()
-                        }
-                    }
-                }
-            })
-    }}
-  >
-    <Text style={{ color: "white", textAlign: "center" }}>Register Snacks</Text>
-  </TouchableOpacity>)}
-  {(meal[0] === "S" && currentRegistration.meals[meal[0]]) && (
-  <TouchableOpacity
-    style={{
-      marginTop: 10,
-      padding: 10,
-      backgroundColor: "#FF7F50",
-      borderRadius: 8,
-    }}
-    onPress={() => {
-      setCurrentRegistration((prev: any) => {
-                return {
-                    ...prev,
-                    meals: {
-                        ...prev.meals,
-                        [meal[0]]: {
-                            
-                        }
-                    }
-                }
-            })
-    }}
-  >
-    <Text style={{ color: "white", textAlign: "center" }}>Cancel Snacks</Text>
-  </TouchableOpacity>)}
+    {/* Register / Cancel Buttons */}
+    <View style={{ flexDirection: "row", marginTop: 12, gap: 10 }}>
+      {!registeredMess ? (
+        // No registration yet → Register
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "#81C784",
+            padding: 12,
+            borderRadius: 8,
+          }}
+        >
+          <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
+            Register
+          </Text>
+        </TouchableOpacity>
+      ) : registeredMess === selectedMess ? (
+        // Registered mess matches current → Cancel
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "#E57373",
+            padding: 12,
+            borderRadius: 8,
+          }}
+        >
+          <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
+            Cancel
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        // Registered mess different from current → Register
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "#81C784",
+            padding: 12,
+            borderRadius: 8,
+          }}
+        >
+          <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
+            Register
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  </>
+)}
+
+
 
         <Modal
             visible={isMealModalVisible}

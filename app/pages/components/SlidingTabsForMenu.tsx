@@ -11,10 +11,12 @@ function SlidingTabs({
   onUpdate,
   containerWidth,
   mess,
+  unavailableMesses
 }: {
   onUpdate: (arg: number) => void;
   containerWidth: number;
   mess: number;
+  unavailableMesses: any;
 }) {
   const tabWidth = (containerWidth - 128) / 3;
   const animValue = useRef(new Animated.Value(0)).current;
@@ -94,44 +96,48 @@ function SlidingTabs({
       </View>
 
       {/* Kadamba Veg/Nonveg Toggle */}
-      {activeIndex === 2 && (
-        <View style={styles.kadambaToggle}>
-          <TouchableOpacity
-            style={[
-              styles.kadambaOption,
-              kadambaChoice === 0 && { backgroundColor: "#138808" },
-              { padding: 8, alignItems: "center", justifyContent: "center" },
-            ]}
-            onPress={() => handleKadambaChoice(0)}
-          >
-            <Text
-              style={[
-                styles.kadambaText,
-                kadambaChoice === 0 && styles.kadambaActiveText,
-              ]}
-            >
-              V
-            </Text>
-          </TouchableOpacity>
+{activeIndex === 2 && (
+  <View style={styles.kadambaToggle}>
+    {/* Kadamba Veg */}
+    <TouchableOpacity
+      style={[
+        styles.kadambaOption,
+        kadambaChoice === 0 && { backgroundColor: "#138808" },
+      ]}
+      onPress={() => handleKadambaChoice(0)}
+    >
+      <Text
+        style={[
+          styles.kadambaText,
+          kadambaChoice === 0 && styles.kadambaActiveText,
+        ]}
+      >
+        V
+      </Text>
+    </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.kadambaOption,
-              kadambaChoice === 1 && styles.kadambaActive,
-            ]}
-            onPress={() => handleKadambaChoice(1)}
-          >
-            <Text
-              style={[
-                styles.kadambaText,
-                kadambaChoice === 1 && styles.kadambaActiveText,
-              ]}
-            >
-              NV
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+    {/* Kadamba Non-Veg */}
+    <TouchableOpacity
+      disabled={unavailableMesses.includes("kadamba-nonveg")}
+      style={[
+        styles.kadambaOption,
+        kadambaChoice === 1 && styles.kadambaActive,
+        unavailableMesses.includes("kadamba-nonveg") && { opacity: 0.4 }, // grey out
+      ]}
+      onPress={() => handleKadambaChoice(1)}
+    >
+      <Text
+        style={[
+          styles.kadambaText,
+          kadambaChoice === 1 && styles.kadambaActiveText,
+          unavailableMesses.includes("kadamba-nonveg") && { color: "#999" },
+        ]}
+      >
+        NV
+      </Text>
+    </TouchableOpacity>
+  </View>
+)}
     </View>
   );
 }
