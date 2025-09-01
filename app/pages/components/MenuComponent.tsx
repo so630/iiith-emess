@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import SlidingTabs from "./SlidingTabsForMenu";
-import { register } from "@/app/helpers";
+import { cancel, register, uncancel } from "@/app/helpers";
 
 export default function BreakfastCard({date, currentRegistration, setCurrentRegistration, onRegistrationChanged}) {
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
@@ -58,6 +58,56 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
             }
         });
     };
+
+    const handleCancel = () => {
+        console.log('cancelling...');
+        const body = {
+            meal_date: date.toISOString().split("T")[0],
+            meal_type: meal.toLowerCase(),
+        }
+
+        const status = cancel(body);
+        status.then((status: number) => {
+            if (status === 204)
+            {
+                onRegistrationChanged();
+            }
+            else if (status === 403)
+            {
+                Alert.alert('rip cancellation window closed xD');
+            }
+            else
+            {
+                Alert.alert('error');
+            }
+        });
+
+    }
+
+    const handleUncancel = () => {
+        console.log('uncancelling...');
+        const body = {
+            meal_date: date.toISOString().split("T")[0],
+            meal_type: meal.toLowerCase(),
+        }
+
+        const status = uncancel(body);
+        status.then((status: number) => {
+            if (status === 204)
+            {
+                onRegistrationChanged();
+            }
+            else if (status === 403)
+            {
+                Alert.alert('rip uncancellation window closed xD');
+            }
+            else
+            {
+                Alert.alert('error');
+            }
+        });
+
+    }
 
     useEffect(() => console.log(data), [data]);
 
@@ -298,18 +348,34 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
         </TouchableOpacity>
       ) : registeredMess === selectedMess ? (
         // Registered mess matches current → Cancel
-        <TouchableOpacity
+        currentRegistration.meals[meal[0]]?.cancelled 
+            ? (<TouchableOpacity
           style={{
             flex: 1,
             backgroundColor: "#E57373",
             padding: 12,
             borderRadius: 8,
           }}
+          onPress={handleUncancel}
+        >
+          <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
+            Uncancel
+          </Text>
+        </TouchableOpacity>)
+            : 
+            (<TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "#E57373",
+            padding: 12,
+            borderRadius: 8,
+          }}
+          onPress={handleCancel}
         >
           <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
             Cancel
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>)
       ) : (
         // Registered mess different from current → Register
         <TouchableOpacity

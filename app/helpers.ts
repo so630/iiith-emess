@@ -118,3 +118,27 @@ export async function register(body: any)
   console.log(response.status)
   return response.status;
 }
+
+export async function cancel(body: any)
+{
+  const auth_key = await _getAuthKey();
+  const response = await fetch('https://mess.iiit.ac.in/api/registrations/cancel', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {'Authorization': auth_key, 'Content-Type': 'application/json'}
+  })
+  console.log(response.status);
+  return response.status;
+}
+
+export async function uncancel(body: any)
+{
+  const auth_key = await _getAuthKey();
+  const response = await fetch('https://mess.iiit.ac.in/api/registrations/uncancel', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {'Authorization': auth_key, 'Content-Type': 'application/json'}
+  })
+  console.log(response.status);
+  return response.status;
+}
