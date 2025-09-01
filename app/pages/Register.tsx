@@ -12,6 +12,24 @@ export default function Register() {
   const [weekData, setWeekData] = useState<DayMeals[]>([]);
   const [weekOffset, setWeekOffset] = useState(0);
 
+  const onRegistrationChanged = () => {
+    const fetchRegistrationData = async () => {
+      const start = startDate.toISOString().split("T")[0];
+      const end = endDate.toISOString().split("T")[0];
+
+      const authKey = await _getAuthKey();
+      const response = await fetch(
+        `https://mess.iiit.ac.in/api/registrations?from=${start}&to=${end}`,
+        { headers: { Authorization: authKey } }
+      );
+      const data = await response.json();
+      const transformed = transformData(data, startDate, endDate);
+      setWeekData(transformed);
+    };
+
+    fetchRegistrationData();
+  }
+
   // start/end dates for the week
   const [startDate, setStartDate] = useState(
     dayjs().startOf("week").startOf("day").toDate()
@@ -41,11 +59,13 @@ export default function Register() {
 
   // keep selectedDate → Date object synced
   useEffect(() => {
-    if (selectedDate !== null) {
-      const [year, month, day] = selectedDate.split("-").map(Number);
-      setDate(new Date(year, month - 1, day));
-    }
-  }, [selectedDate]);
+  if (selectedDate) {
+    const [year, month, day] = selectedDate.split("-").map(Number);
+    const d = new Date(Date.UTC(year, month - 1, day)); // 👈 force UTC
+    setDate(d);
+    // console.log(d.toISOString()); // stays correct
+  }
+}, [selectedDate]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,9 +87,11 @@ export default function Register() {
       {/* Main Content Area */}
       {selectedDate !== null && (
         <MenuComponent
+          key={date.toISOString()}
           date={date}
           currentRegistration={currentRegistration}
           setCurrentRegistration={setCurrentRegistration}
+          onRegistrationChanged={onRegistrationChanged}
         />
       )}
     </SafeAreaView>

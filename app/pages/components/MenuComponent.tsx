@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import SlidingTabs from "./SlidingTabsForMenu";
+import { register } from "@/app/helpers";
 
-export default function BreakfastCard({date, currentRegistration, setCurrentRegistration}) {
+export default function BreakfastCard({date, currentRegistration, setCurrentRegistration, onRegistrationChanged}) {
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
     const messkey = {'palash': 0, 'yuktahar': 1, 'kadamba-veg': 2, 'kadamba-nonveg': 3}
     const [mess,
@@ -24,7 +25,39 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
         }
     };
 
-    
+    const handleRegister = () => {
+        console.log('registering...');
+        // console.log(currentRegistration);
+        // console.log(meal);
+        console.log(date);
+        // console.log(messes[mess]);
+
+        // const url = 'https://mess.iiit.ac.in/api/registrations';
+        const body = {
+            meal_date: date.toISOString().split("T")[0],
+            meal_type: meal.toLowerCase(),
+            meal_mess: messes[mess].toLowerCase(),
+            guests: 0
+        }
+
+        console.log(body);
+
+        const status = register(body);
+        status.then((status: number) => {
+            if (status === 403)
+            {
+                Alert.alert('The registration window has passed, or the mess is full in capacity :P');
+            }
+            else if (status === 200)
+            {
+                onRegistrationChanged();
+            }
+            else
+            {
+                Alert.alert('error!');
+            }
+        });
+    };
 
     useEffect(() => console.log(data), [data]);
 
@@ -102,20 +135,29 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
 
     React.useEffect(() => {
         if (Object.keys(currentRegistration).length !== 0) {
-            console.log('meal changed');
+            console.log("meal changed");
             console.log(currentRegistration.meals);
 
             const mealReg = currentRegistration.meals?.[meal[0]]; // safe access
             if (mealReg && mealReg.mess) {
-                const mess_name: string = mealReg.mess;
+            const mess_name = mealReg.mess.toLowerCase();
+            if (mess_name in messkey) {
                 setMess(messkey[mess_name]);
             } else {
-                console.log(`${meal} not registered`);
-                // fallback if user not registered
-                setMess(0); // default to Palash, or whichever you prefer
+                console.warn("Unknown mess name:", mess_name);
+                setMess(0); // fallback to Palash
             }
+            } else {
+            console.log(`${meal} not registered`);
+            setMess(0); // fallback if user not registered
+            }
+        } else {
+            // 🔥 Handle case where no registration exists at all
+            console.log("No registrations for this date/meal");
+            setMess(0); // force update so lower component re-renders
         }
-    }, [date, meal])
+    }, [date, meal, currentRegistration]);
+
 
     React.useEffect(() => {
         console.log('getting menu!')
@@ -247,6 +289,8 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
             padding: 12,
             borderRadius: 8,
           }}
+
+          onPress={handleRegister}
         >
           <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
             Register
@@ -275,6 +319,8 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
             padding: 12,
             borderRadius: 8,
           }}
+
+          onPress={handleRegister}
         >
           <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
             Register

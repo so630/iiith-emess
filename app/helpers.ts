@@ -104,3 +104,15 @@ export function formatMess(mess: string) {
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join("-");
 }
+
+export async function register(body: any)
+{
+  const auth_key = await _getAuthKey()
+  const response = await fetch('https://mess.iiit.ac.in/api/registrations', {
+              method: 'POST',
+              body: JSON.stringify(body),
+              headers: {'Authorization': auth_key, 'Content-Type': 'application/json'}
+          });
+  console.log(response.status)
+  return response.status;
+}
