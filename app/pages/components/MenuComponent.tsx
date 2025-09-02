@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import SlidingTabs from "./SlidingTabsForMenu";
-import { cancel, register, uncancel } from "@/app/helpers";
+import { cancel, feedback_window_time, register, uncancel } from "@/app/helpers";
+import MealRating from "./MealRating";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function BreakfastCard({date, currentRegistration, setCurrentRegistration, onRegistrationChanged}) {
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
@@ -278,8 +280,75 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
 
     setUnavailableMesses(unavailable);
     }, [data, date, meal]);
+
+    const [canGiveFeedback, setCanGiveFeedback] = useState(false);
+
+    // check feedback window + AsyncStorage + availed
+    useEffect(() => {
+    const checkWindowAndStorage = async () => {
+        const dateStr = date.toISOString().split("T")[0];
+        const mealKey = meal[0]; // B / L / S / D
+        const key = `@Rated:${dateStr}:${mealKey}`;
+
+        console.log("[BreakfastCard] === Checking feedback eligibility ===");
+        console.log("[BreakfastCard] Inputs:", {
+        dateStr,
+        meal,
+        mealKey,
+        mess: messes[mess],
+        key,
+        });
+
+        try {
+        // 1. check if availed
+        const availed = currentRegistration?.meals?.[mealKey]?.availed ?? false;
+        console.log("[BreakfastCard] availed =", availed);
+
+        if (!availed) {
+            console.log("[BreakfastCard] Meal not availed → setCanGiveFeedback(false)");
+            setCanGiveFeedback(false);
+            return;
+        }
+
+        // 2. check feedback window
+        const allowed = await feedback_window_time(date, meal, messes[mess]);
+        console.log("[BreakfastCard] feedback_window_time result =", allowed);
+
+        if (!allowed) {
+            console.log("[BreakfastCard] Outside feedback window → setCanGiveFeedback(false)");
+            setCanGiveFeedback(false);
+            return;
+        }
+
+        // 3. check AsyncStorage if already rated
+        const alreadyRated = await AsyncStorage.getItem(key);
+        console.log("[BreakfastCard] AsyncStorage.getItem:", {
+            key,
+            alreadyRated,
+        });
+
+        if (alreadyRated) {
+            console.log("[BreakfastCard] Meal already rated → setCanGiveFeedback(false)");
+            setCanGiveFeedback(false);
+        } else {
+            console.log("[BreakfastCard] Eligible for feedback → setCanGiveFeedback(true)");
+            setCanGiveFeedback(true);
+        }
+        } catch (err) {
+        console.error("[BreakfastCard] Error checking feedback window/storage:", err);
+        setCanGiveFeedback(false);
+        }
+
+        console.log("[BreakfastCard] Final canGiveFeedback =", canGiveFeedback);
+    };
+
+    checkWindowAndStorage();
+    }, [date, meal, mess, currentRegistration]);
+
+
+
   return (
-    <View style={styles.card} onLayout={event => {
+    <ScrollView style={styles.card} onLayout={event => {
         setContainerWidth(event.nativeEvent.layout.width);
     }}>
       {/* Header */}
@@ -397,6 +466,19 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
   </>
 )}
 
+    {canGiveFeedback && (
+  <MealRating
+    key={`${date.toISOString()}-${meal}-${messes[mess]}`} 
+    meal={meal}
+    date={date}
+    onSubmit={() => {
+      console.log("[BreakfastCard] onSubmit from MealRating → hiding MealRating");
+      setCanGiveFeedback(false);
+    }}
+  />
+)}
+
+
 
 
         <Modal
@@ -448,7 +530,7 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
             </TouchableOpacity>
         </Modal>
 
-    </View>
+    </ScrollView>
   );
 }
 
