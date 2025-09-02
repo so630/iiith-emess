@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import SlidingTabs from "./SlidingTabsForMenu";
-import { cancel, feedback_window_time, register, uncancel } from "@/app/helpers";
+import { cancel, feedback_window_time, getRating, register, uncancel } from "@/app/helpers";
 import MealRating from "./MealRating";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {Star} from 'lucide-react-native'
 
 export default function BreakfastCard({date, currentRegistration, setCurrentRegistration, onRegistrationChanged}) {
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
@@ -345,12 +346,67 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
     checkWindowAndStorage();
     }, [date, meal, mess, currentRegistration]);
 
+    const [mealRatingData, setMealRatingData] = useState<any | null>(null);
+const requestIdRef = useRef(0);
+
+useEffect(() => {
+  const fetchRating = async () => {
+    try {
+      const dateStr = date.toISOString().split("T")[0];
+      const messName = messes[mess].toLowerCase();
+
+      console.log("[BreakfastCard] Fetching rating for:", {
+        dateStr,
+        messName,
+        meal: meal.toLowerCase(),
+      });
+
+      const res = await getRating(dateStr, messName, meal.toLowerCase());
+
+      // Handle API response
+      if (!res) {
+        console.log("[BreakfastCard] getRating → no data (maybe 403 feedback window)");
+        setMealRatingData(null);
+        return;
+      }
+
+      console.log("[BreakfastCard] getRating result:", res);
+      setMealRatingData(res);
+    } catch (err: any) {
+      if (err?.status === 403) {
+        console.log("[BreakfastCard] Feedback window still open → skipping rating update");
+        return;
+      }
+      console.error("[BreakfastCard] Error fetching rating:", err);
+      setMealRatingData(null);
+    }
+  };
+
+  fetchRating();
+}, [date, meal, mess]);
+
 
 
   return (
     <ScrollView style={styles.card} onLayout={event => {
         setContainerWidth(event.nativeEvent.layout.width);
     }}>
+        {mealRatingData ? (
+            <View
+            style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                flexDirection: "row",
+                alignItems: "center",
+            }}
+            >
+            <Text style={{ fontSize: 12, fontWeight: "600", marginRight: 2 }}>
+                {mealRatingData.rating.toFixed(1)}
+            </Text>
+            <Star size={12} color="gold" fill="gold" />
+            </View>
+        ) : null}
       {/* Header */}
         <TouchableOpacity onPress={() => setMealModalVisible(true)}>
             <Text
@@ -467,16 +523,16 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
 )}
 
     {canGiveFeedback && (
-  <MealRating
-    key={`${date.toISOString()}-${meal}-${messes[mess]}`} 
-    meal={meal}
-    date={date}
-    onSubmit={() => {
-      console.log("[BreakfastCard] onSubmit from MealRating → hiding MealRating");
-      setCanGiveFeedback(false);
-    }}
-  />
-)}
+        <MealRating
+            key={`${date.toISOString()}-${meal}-${messes[mess]}`} 
+            meal={meal}
+            date={date}
+            onSubmit={() => {
+            console.log("[BreakfastCard] onSubmit from MealRating → hiding MealRating");
+            setCanGiveFeedback(false);
+            }}
+        />
+    )}
 
 
 

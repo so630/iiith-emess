@@ -244,5 +244,26 @@ export async function submit_rating(body: any) {
   return response.status;
 }
 
+export async function getRating(date: string, mess: string, meal: string) {
+  const authKey = await _getAuthKey();
+  console.log(`[getRating] url = https://mess.iiit.ac.in/api/rating?date=${date.split('T')[0]}&mess=${mess}&meal=${meal}`);
+
+  const res = await fetch(
+    `https://mess.iiit.ac.in/api/registration/rating?date=${date.split('T')[0]}&mess=${mess}&meal=${meal}`,
+    { headers: { Authorization: authKey } }
+  );
+
+  if (res.status === 403) {
+    console.log("[getRating] Feedback window not closed yet → status 403");
+    return undefined;
+  }
+
+  const body = await res.json();
+  console.log("[getRating] body:", body);
+
+  return body?.data;
+}
+
+
 
 
