@@ -1,9 +1,10 @@
 import { submit_rating } from "@/app/helpers";
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
 
 export default function MealRating({ meal, date, onSubmit }) {
   const [selected, setSelected] = useState<number | null>(null);
+  const [remarks, setRemarks] = useState(""); // NEW
   const [submitted, setSubmitted] = useState(false);
 
   const handleRate = (value: number) => {
@@ -17,8 +18,10 @@ export default function MealRating({ meal, date, onSubmit }) {
         meal_date: date.toISOString().split("T")[0],
         meal_type: meal.toLowerCase(),
         rating: selected,
-        remarks: "",
+        remarks: remarks.trim(), // use remarks
       };
+      console.log("[MealRating] Submitting body:", body);
+
       submit_rating(body);
       setSubmitted(true); // lock + hide
       if (onSubmit) onSubmit(); // let parent refresh/reload
@@ -47,6 +50,24 @@ export default function MealRating({ meal, date, onSubmit }) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* NEW remarks text input */}
+      <TextInput
+        value={remarks}
+        onChangeText={setRemarks}
+        placeholder="Optional remarks..."
+        multiline
+        style={{
+          marginTop: 10,
+          borderWidth: 1,
+          borderColor: "gray",
+          borderRadius: 6,
+          padding: 8,
+          width: "80%",
+          minHeight: 40,
+          textAlignVertical: "top",
+        }}
+      />
 
       <TouchableOpacity
         onPress={handleSubmit}

@@ -174,8 +174,8 @@ export async function feedback_window_time(
     feedbackConfig: feedbackBody,
   });
 
-  const rating_window_minutes = feedbackBody?.data ?? 30;
-  console.log("[feedback_window_time] rating_window_minutes =", rating_window_minutes);
+  const rating_window_seconds = feedbackBody?.data ?? 30;
+  console.log("[feedback_window_time] rating_window_minutes =", rating_window_seconds);
 
   const timings = timingsBody.data[messKey];
   if (!timings) {
@@ -198,7 +198,7 @@ export async function feedback_window_time(
 
   console.log("[feedback_window_time] endDateTime =", endDateTime.toISOString());
 
-  const windowClose = new Date(endDateTime.getTime() + rating_window_minutes * 60 * 1000);
+  const windowClose = new Date(endDateTime.getTime() + rating_window_seconds * 1000);
   console.log("[feedback_window_time] windowClose =", windowClose.toISOString());
 
   const withinWindow = now >= endDateTime && now <= windowClose;
@@ -235,6 +235,10 @@ export async function submit_rating(body: any) {
     } catch (err) {
       console.error("[submit_rating] Failed to store rating flag:", err);
     }
+  }
+  else
+  {
+    console.log('[STATUS]', response.status);
   }
 
   return response.status;
