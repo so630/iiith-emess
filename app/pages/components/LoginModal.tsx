@@ -69,6 +69,7 @@ export default function LoginModal({modalVisible, setModalVisible} : LoginModalP
                         style={styles.input}
                         placeholder="Enter your token..."
                         placeholderTextColor="#2c5282"
+                        secureTextEntry={true}
                         onChangeText={(e) => setAuthKey(e)}/>
                     <Pressable style={styles.button} onPress={handleAuth}>
                         <Text style={styles.buttonText} >Login</Text>
