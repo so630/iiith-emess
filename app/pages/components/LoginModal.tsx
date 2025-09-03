@@ -1,14 +1,15 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
-    View,
-    Text,
-    TextInput,
+    Alert,
+    Modal,
     Pressable,
     StyleSheet,
-    Modal
+    Text,
+    TextInput,
+    View
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type LoginModalProps = {
     modalVisible: boolean;
@@ -26,21 +27,29 @@ export default function LoginModal({modalVisible, setModalVisible} : LoginModalP
                 await AsyncStorage.setItem('@AuthKey', authKey)
             } catch (err) {
                 console.log(err);
+                Alert.alert("Storage Error", "Failed to store authentication key.");
             }
         };
 
-        const res = await fetch('https://mess.iiit.ac.in/api/auth/keys/info', {
-            headers: {
-                'Authorization': authKey
-            }
-        })
+        try {
+            const res = await fetch('https://mess.iiit.ac.in/api/auth/keys/info', {
+                headers: {
+                    'Authorization': authKey
+                }
+            });
 
-        if (res.status != 200) {
-            console.log(res.status);
-        } else {
-            await _storeAuthKey();
-            console.log(`${authKey} stored`);
-            setModalVisible(true);
+            if (res.status === 401) {
+                Alert.alert("Authentication Failed", "Invalid token. Please try again.");
+            } else if (res.status !== 200) {
+                Alert.alert("Error", `Login failed with status ${res.status}.`);
+            } else {
+                await _storeAuthKey();
+                // Optionally: Alert.alert("Success", "Login successful!");
+                setModalVisible(true);
+            }
+        } catch (err) {
+            console.log(err);
+            Alert.alert("Network Error", "Could not connect to server.");
         }
     };
 

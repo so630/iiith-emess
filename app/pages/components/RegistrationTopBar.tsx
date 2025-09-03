@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
-import React, { useEffect, useRef, useState } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { _getAuthKey, DayMeals, formatMess, MealType, transformData } from "@/app/helpers";
 
@@ -47,6 +47,40 @@ const RegistrationTopBar = ({
     const found = weekData.find((d) => d.date === selectedDate);
     if (found) setCurrentRegistration(found);
   }, [selectedDate, weekData]);
+
+  // fetch registration data on startDate/endDate change
+  useEffect(() => {
+    const start = startDate.toISOString().split("T")[0];
+    const end = endDate.toISOString().split("T")[0];
+
+    const fetchRegistrationData = async (start: any, end: any) => {
+      try {
+        const authKey = await _getAuthKey();
+        const response = await fetch(
+          `https://mess.iiit.ac.in/api/registrations?from=${start}&to=${end}`,
+          { headers: { Authorization: authKey } }
+        );
+        if (!response.ok) {
+          Alert.alert("Error", `Failed to fetch registration data: ${response.status}`);
+          return;
+        }
+        const data = await response.json();
+        // pass week start/end so transformData builds Sun→Sat
+        const transformed = transformData(data, startDate, endDate);
+        setWeekData(transformed);
+        setData(data);
+
+        console.log(data);
+        console.log(transformed);
+        console.log(start);
+        console.log(end);
+      } catch (err) {
+        console.log(err);
+        Alert.alert("Network Error", "Could not fetch registration data.");
+      }
+    };
+    fetchRegistrationData(start, end);
+  }, [startDate, endDate]);
 
   return (
     <View style={styles.container}>

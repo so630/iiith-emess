@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
-import SlidingTabs from "./SlidingTabsForMenu";
 import { cancel, feedback_window_time, getRating, register, uncancel } from "@/app/helpers";
-import MealRating from "./MealRating";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {Star} from 'lucide-react-native'
+import { Star } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import MealRating from "./MealRating";
+import SlidingTabs from "./SlidingTabsForMenu";
 
 export default function BreakfastCard({date, currentRegistration, setCurrentRegistration, onRegistrationChanged}) {
     const messes = ['Palash', 'Yuktahar', 'Kadamba-Veg', 'Kadamba-Nonveg'];
@@ -215,17 +215,25 @@ export default function BreakfastCard({date, currentRegistration, setCurrentRegi
     React.useEffect(() => {
         console.log('getting menu!')
         const getMenu = async() => {
-            const result = await fetch(`https://mess.iiit.ac.in/api/mess/menus?on=${date.toISOString().split("T")[0]}`);
-            let body = await result.json();
-            body.data.map((menu1 : any) => {
-                    if (menu1.mess === messes[mess].toLowerCase()) {
-                        setMenu(menu1.days);
-                        console.log(menu1.days);
-                    }
-                });
+            try {
+                const result = await fetch(`https://mess.iiit.ac.in/api/mess/menus?on=${date.toISOString().split("T")[0]}`);
+                if (!result.ok) {
+                    Alert.alert("Error", `Failed to fetch menu: ${result.status}`);
+                    return;
+                }
+                let body = await result.json();
+                body.data.map((menu1 : any) => {
+                        if (menu1.mess === messes[mess].toLowerCase()) {
+                            setMenu(menu1.days);
+                            console.log(menu1.days);
+                        }
+                    });
 
-            setData(body.data);
-
+                setData(body.data);
+            } catch (err) {
+                console.log(err);
+                Alert.alert("Network Error", "Could not fetch menu data.");
+            }
         }
 
         getMenu();
