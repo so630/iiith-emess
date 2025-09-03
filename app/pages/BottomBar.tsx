@@ -95,7 +95,7 @@ function BottomBar({ state, descriptors, navigation }: BottomBarProps) {
 
 const Tab = createBottomTabNavigator();
 
-export default function Tabs() {
+export default function Tabs({onLogout}: {onLogout: any}) {
   return (
     <Tab.Navigator
       screenOptions={{

@@ -81,7 +81,30 @@ export function transformData(apiData: any, start, end): DayMeals[] {
   return week;
 }
 
+export const loginWithAuthKey = async (authKey: string) => {
+  const _storeAuthKey = async() => {
+      try {
+          await AsyncStorage.setItem('@AuthKey', authKey)
+      } catch (err) {
+          console.log(err);
+      }
+  };
 
+  const res = await fetch('https://mess.iiit.ac.in/api/auth/keys/info', {
+      headers: {
+          'Authorization': authKey
+      }
+  })
+
+  if (res.status != 200) {
+      console.log(res.status);
+  } else {
+      await _storeAuthKey();
+      console.log(`${authKey} stored`);
+  }
+
+  return res.status;
+}
 
 
 export const _getAuthKey = async () => {
@@ -263,7 +286,3 @@ export async function getRating(date: string, mess: string, meal: string) {
 
   return body?.data;
 }
-
-
-
-

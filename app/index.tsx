@@ -8,6 +8,7 @@ import {
 import Tabs from "./pages/BottomBar"
 import LoginModal from './pages/components/LoginModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { listenAuthKey } from './storage';
 
 export default function App() {
 
@@ -46,10 +47,17 @@ export default function App() {
     authenticate();
   }, [])
 
+  React.useEffect(() => {
+    const unsub = listenAuthKey((key) => {
+      setLoggedIn(false);
+    });
+    return unsub;
+  }, []);
+
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-        <Tabs />
+        <Tabs onLogout={() => setLoggedIn(false)} />
         <LoginModal modalVisible={login} setModalVisible={setLoggedIn} />
       </NavigationContainer>
     </NavigationIndependentTree>
